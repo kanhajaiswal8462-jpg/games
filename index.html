@@ -1,0 +1,172 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Super Car Racing Game</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;
+ background:#111;
+ color:white;
+ text-align:center;
+ font-family:Arial;
+}
+h1{color:yellow}
+#score{font-size:24px;margin:10px}
+canvas{
+ background:#444;
+ border:4px solid white;
+ width:min(95vw,350px);
+ height:auto;
+}
+button{
+ background:orange;
+ border:none;
+ padding:14px 25px;
+ margin:8px;
+ border-radius:10px;
+ font-size:20px;
+ font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🏎️ CAR RACING GAME</h1>
+<div id="score">Score: 0</div>
+
+<canvas id="game" width="350" height="550"></canvas>
+
+<div>
+<button onclick="moveLeft()">⬅️ LEFT</button>
+<button onclick="moveRight()">RIGHT ➡️</button>
+</div>
+
+<button onclick="startGame()">START GAME</button>
+
+<script>
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
+
+let player={x:150,y:450,w:45,h:75};
+let enemies=[];
+let score=0;
+let speed=4;
+let running=false;
+let gameOver=false;
+let frame=0;
+
+function car(x,y,color){
+ ctx.fillStyle=color;
+ ctx.fillRect(x,y,45,75);
+ ctx.fillStyle="white";
+ ctx.fillRect(x+7,y+10,31,18);
+ ctx.fillStyle="black";
+ ctx.fillRect(x+3,y+5,7,15);
+ ctx.fillRect(x+35,y+5,7,15);
+ ctx.fillRect(x+3,y+55,7,15);
+ ctx.fillRect(x+35,y+55,7,15);
+}
+
+function drawRoad(){
+ ctx.fillStyle="#444";
+ ctx.fillRect(0,0,350,550);
+
+ ctx.strokeStyle="white";
+ ctx.setLineDash([30,25]);
+ ctx.lineWidth=5;
+ ctx.beginPath();
+ ctx.moveTo(115,0);
+ ctx.lineTo(115,550);
+ ctx.moveTo(235,0);
+ ctx.lineTo(235,550);
+ ctx.stroke();
+ ctx.setLineDash([]);
+}
+
+function draw(){
+ drawRoad();
+ car(player.x,player.y,"red");
+
+ enemies.forEach(e=>car(e.x,e.y,"blue"));
+}
+
+function moveLeft(){
+ if(player.x>10)player.x-=40;
+}
+
+function moveRight(){
+ if(player.x<295)player.x+=40;
+}
+
+function update(){
+ if(!running)return;
+
+ frame++;
+
+ if(frame%65===0){
+  let lanes=[35,150,270];
+  let x=lanes[Math.floor(Math.random()*3)];
+  enemies.push({x:x,y:-80});
+ }
+
+ enemies.forEach(e=>e.y+=speed);
+
+ enemies=enemies.filter(e=>e.y<600);
+
+ for(let e of enemies){
+  if(player.x<e.x+45 &&
+     player.x+45>e.x &&
+     player.y<e.y+75 &&
+     player.y+75>e.y){
+    running=false;
+    gameOver=true;
+  }
+ }
+
+ if(frame%10===0){
+  score++;
+  document.getElementById("score").innerText="Score: "+score;
+ }
+
+ speed=4+Math.floor(score/100);
+ draw();
+
+ if(gameOver){
+  ctx.fillStyle="yellow";
+  ctx.font="bold 35px Arial";
+  ctx.fillText("GAME OVER",65,260);
+  ctx.font="20px Arial";
+  ctx.fillText("Score: "+score,130,300);
+  return;
+ }
+
+ requestAnimationFrame(update);
+}
+
+function startGame(){
+ player.x=150;
+ enemies=[];
+ score=0;
+ speed=4;
+ frame=0;
+ running=true;
+ gameOver=false;
+ document.getElementById("score").innerText="Score: 0";
+ update();
+}
+
+document.addEventListener("keydown",e=>{
+ if(e.key==="ArrowLeft")moveLeft();
+ if(e.key==="ArrowRight")moveRight();
+});
+draw();
+</script>
+
+</body>
+</html>
